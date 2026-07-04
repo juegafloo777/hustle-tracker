@@ -397,8 +397,8 @@ function updateCountdown() {
 async function loadTasksForToday() {
   const key = 'tasks:' + todayKey();
   try {
-    const res = await window.storage.get(key, false);
-    return res ? JSON.parse(res.value) : {};
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
   } catch (e) {
     return {};
   }
@@ -407,7 +407,7 @@ async function loadTasksForToday() {
 async function saveTasksForToday(state) {
   const key = 'tasks:' + todayKey();
   try {
-    await window.storage.set(key, JSON.stringify(state), false);
+    localStorage.setItem(key, JSON.stringify(state));
   } catch (e) {
     console.error('save tasks failed', e);
   }
@@ -443,8 +443,8 @@ async function renderStreak() {
     const key = todayKey(i);
     let state = {};
     try {
-      const res = await window.storage.get('tasks:' + key, false);
-      state = res ? JSON.parse(res.value) : {};
+      const raw = localStorage.getItem('tasks:' + key);
+      state = raw ? JSON.parse(raw) : {};
     } catch (e) { state = {}; }
     const doneCount = TASK_KEYS.filter(t => state[t]).length;
     const dot = document.createElement('div');
@@ -457,8 +457,8 @@ async function renderStreak() {
 
 async function loadSavingsLog() {
   try {
-    const res = await window.storage.get('savings-log', false);
-    return res ? JSON.parse(res.value) : [];
+    const raw = localStorage.getItem('savings-log');
+    return raw ? JSON.parse(raw) : [];
   } catch (e) {
     return [];
   }
@@ -466,7 +466,7 @@ async function loadSavingsLog() {
 
 async function saveSavingsLog(log) {
   try {
-    await window.storage.set('savings-log', JSON.stringify(log), false);
+    localStorage.setItem('savings-log', JSON.stringify(log));
   } catch (e) {
     console.error('save savings failed', e);
   }

@@ -94,7 +94,6 @@
     color: var(--paper-dim);
     margin-top: 8px;
   }
-
   .section-title {
     font-family: 'Oswald', sans-serif;
     font-size: 13px;
@@ -112,7 +111,6 @@
     height: 1px;
     background: var(--line);
   }
-
   .card {
     background: var(--card);
     border: 1px solid var(--line);
@@ -120,7 +118,6 @@
     padding: 16px;
     margin-bottom: 12px;
   }
-
   .task-row {
     display: flex;
     align-items: center;
@@ -164,7 +161,6 @@
     font-size: 11px;
     color: var(--paper-dim);
   }
-
   .gauge-wrap {
     margin-top: 4px;
   }
@@ -206,7 +202,6 @@
     color: var(--paper-dim);
   }
   .gauge-meta strong { color: var(--paper); }
-
   .add-row {
     display: flex;
     gap: 8px;
@@ -236,7 +231,6 @@
     cursor: pointer;
   }
   .add-row button:active { opacity: 0.8; }
-
   .log-list {
     margin-top: 10px;
     max-height: 160px;
@@ -257,7 +251,6 @@
     font-size: 12px;
     margin-left: 10px;
   }
-
   .streak-row {
     display: flex;
     gap: 6px;
@@ -282,7 +275,6 @@
     border-color: var(--brass);
     font-weight: 700;
   }
-
   .footnote {
     text-align: center;
     font-size: 11px;
@@ -291,7 +283,6 @@
     font-family: 'JetBrains Mono', monospace;
     letter-spacing: 0.05em;
   }
-
   .status-msg {
     text-align: center;
     font-size: 12px;
@@ -302,18 +293,15 @@
 </head>
 <body>
 <div class="wrap">
-
   <div class="header">
     <div class="eyebrow">Daily Time Card</div>
     <h1 id="dateHeader">—</h1>
   </div>
-
   <div class="clock-card">
     <div class="clock-label">Days until Jan 21</div>
     <div class="clock-number" id="countdownNum">—</div>
     <div class="clock-sub" id="countdownSub">—</div>
   </div>
-
   <div class="section-title">Today's Punch List</div>
   <div class="card" id="taskCard">
     <div class="task-row">
@@ -337,12 +325,12 @@
       <div class="task-time">flex</div>
     </div>
   </div>
-
+  <div class="section-title" id="workoutSectionTitle">Workout Routine</div>
+  <div class="card" id="workoutCard"></div>
   <div class="section-title">Last 7 Days</div>
   <div class="card">
     <div class="streak-row" id="streakRow"></div>
   </div>
-
   <div class="section-title">Savings — $4,000 by Jan 21</div>
   <div class="card">
     <div class="gauge-wrap">
@@ -362,15 +350,53 @@
     </div>
     <div class="log-list" id="logList"></div>
   </div>
-
   <div class="footnote">PUNCH IN · KEEP THE STREAK · JAN 21 IS THE DEADLINE</div>
 </div>
-
 <script>
 const GOAL_TOTAL = 4000;
 const ALREADY_SAVED_BASELINE = 132; // what was saved before this tracker started
 const DEADLINE = new Date('2027-01-21T00:00:00');
 const TASK_KEYS = ['workout','study','dash','content'];
+
+// Garage-gym routine: Mon–Fri only. Equipment on hand = bench press, barbell/dumbbell weights,
+// outdoor space, jump rope. Every lifting day closes with 45 min of cardio.
+const WORKOUT_PLAN = {
+  1: { title: 'Chest Day', exercises: [
+    { name: 'Barbell Bench Press', detail: '4 x 8-10' },
+    { name: 'Incline Dumbbell Press', detail: '3 x 10' },
+    { name: 'Dumbbell Flyes', detail: '3 x 12' },
+    { name: 'Push-Ups', detail: '3 x max' },
+    { name: 'Cardio — Jump Rope', detail: '45 min' }
+  ]},
+  2: { title: 'Leg Day', exercises: [
+    { name: 'Barbell Back Squats', detail: '4 x 8-10' },
+    { name: 'Dumbbell Walking Lunges', detail: '3 x 12/leg' },
+    { name: 'Romanian Deadlifts', detail: '3 x 10' },
+    { name: 'Standing Calf Raises', detail: '3 x 15' },
+    { name: 'Cardio — Outdoor Run', detail: '45 min' }
+  ]},
+  3: { title: 'Arm Day', exercises: [
+    { name: 'Barbell Curls', detail: '4 x 10' },
+    { name: 'Dumbbell Hammer Curls', detail: '3 x 12' },
+    { name: 'Close-Grip Bench Press', detail: '4 x 10' },
+    { name: 'Overhead DB Triceps Extension', detail: '3 x 12' },
+    { name: 'Cardio — Jump Rope', detail: '45 min' }
+  ]},
+  4: { title: 'Back Day', exercises: [
+    { name: 'Bent-Over Barbell Rows', detail: '4 x 8-10' },
+    { name: 'Single-Arm Dumbbell Rows', detail: '3 x 10/side' },
+    { name: 'Deadlifts', detail: '3 x 8' },
+    { name: 'Dumbbell Pullovers', detail: '3 x 12' },
+    { name: 'Cardio — Outdoor Run', detail: '45 min' }
+  ]},
+  5: { title: 'Leg Day II', exercises: [
+    { name: 'Goblet Squats', detail: '4 x 10' },
+    { name: 'Bulgarian Split Squats', detail: '3 x 10/leg' },
+    { name: 'Dumbbell Stiff-Leg Deadlifts', detail: '3 x 10' },
+    { name: 'Jump Squats', detail: '3 x 15' },
+    { name: 'Cardio — Jump Rope', detail: '45 min' }
+  ]}
+};
 
 function todayKey(offsetDays) {
   const d = new Date();
@@ -380,13 +406,11 @@ function todayKey(offsetDays) {
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
-
 function formatDateHeader() {
   const d = new Date();
   const opts = { weekday: 'long', month: 'long', day: 'numeric' };
   document.getElementById('dateHeader').textContent = d.toLocaleDateString('en-US', opts);
 }
-
 function updateCountdown() {
   const now = new Date();
   const msLeft = DEADLINE - now;
@@ -396,7 +420,6 @@ function updateCountdown() {
   document.getElementById('countdownSub').textContent = `≈ ${weeksLeft} weeks left`;
   return weeksLeft;
 }
-
 async function loadTasksForToday() {
   const key = 'tasks:' + todayKey();
   try {
@@ -406,7 +429,6 @@ async function loadTasksForToday() {
     return {};
   }
 }
-
 async function saveTasksForToday(state) {
   const key = 'tasks:' + todayKey();
   try {
@@ -415,7 +437,6 @@ async function saveTasksForToday(state) {
     console.error('save tasks failed', e);
   }
 }
-
 async function renderTasks() {
   const state = await loadTasksForToday();
   TASK_KEYS.forEach(t => {
@@ -430,7 +451,6 @@ async function renderTasks() {
     }
   });
 }
-
 async function toggleTask(taskKey) {
   const state = await loadTasksForToday();
   state[taskKey] = !state[taskKey];
@@ -438,7 +458,6 @@ async function toggleTask(taskKey) {
   await renderTasks();
   await renderStreak();
 }
-
 async function renderStreak() {
   const row = document.getElementById('streakRow');
   row.innerHTML = '';
@@ -458,6 +477,81 @@ async function renderStreak() {
   }
 }
 
+// --- Workout routine layer ---
+function getWorkoutStateKey() {
+  return 'workout:' + todayKey();
+}
+async function loadWorkoutState() {
+  try {
+    const raw = localStorage.getItem(getWorkoutStateKey());
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+async function saveWorkoutState(state) {
+  try {
+    localStorage.setItem(getWorkoutStateKey(), JSON.stringify(state));
+  } catch (e) {
+    console.error('save workout failed', e);
+  }
+}
+async function renderWorkoutRoutine() {
+  const dow = new Date().getDay(); // 0 = Sun ... 6 = Sat
+  const plan = WORKOUT_PLAN[dow];
+  const titleEl = document.getElementById('workoutSectionTitle');
+  const cardEl = document.getElementById('workoutCard');
+  cardEl.innerHTML = '';
+
+  if (!plan) {
+    titleEl.textContent = 'Workout Routine — Rest Day';
+    const msg = document.createElement('div');
+    msg.className = 'status-msg';
+    msg.textContent = 'No lifting scheduled today. Recover, stretch, or take a walk.';
+    cardEl.appendChild(msg);
+    return;
+  }
+
+  titleEl.textContent = `Workout Routine — ${plan.title}`;
+  const state = await loadWorkoutState();
+
+  plan.exercises.forEach((ex, idx) => {
+    const isDone = !!state[idx];
+    const row = document.createElement('div');
+    row.className = 'task-row';
+    row.innerHTML = `
+      <div class="task-check ${isDone ? 'done' : ''}" data-ex="${idx}"></div>
+      <div class="task-label ${isDone ? 'done' : ''}">${ex.name}</div>
+      <div class="task-time">${ex.detail}</div>
+    `;
+    cardEl.appendChild(row);
+  });
+
+  cardEl.querySelectorAll('.task-check').forEach(box => {
+    box.addEventListener('click', async () => {
+      const idx = box.getAttribute('data-ex');
+      const st = await loadWorkoutState();
+      st[idx] = !st[idx];
+      await saveWorkoutState(st);
+      await renderWorkoutRoutine();
+      await maybeAutoCompleteWorkoutTask(plan);
+    });
+  });
+}
+async function maybeAutoCompleteWorkoutTask(plan) {
+  const state = await loadWorkoutState();
+  const allDone = plan.exercises.every((_, idx) => state[idx]);
+  if (allDone) {
+    const tasks = await loadTasksForToday();
+    if (!tasks.workout) {
+      tasks.workout = true;
+      await saveTasksForToday(tasks);
+      await renderTasks();
+      await renderStreak();
+    }
+  }
+}
+
 async function loadSavingsLog() {
   try {
     const raw = localStorage.getItem('savings-log');
@@ -466,7 +560,6 @@ async function loadSavingsLog() {
     return [];
   }
 }
-
 async function saveSavingsLog(log) {
   try {
     localStorage.setItem('savings-log', JSON.stringify(log));
@@ -474,22 +567,18 @@ async function saveSavingsLog(log) {
     console.error('save savings failed', e);
   }
 }
-
 async function renderSavings() {
   const log = await loadSavingsLog();
   const totalAdded = log.reduce((sum, entry) => sum + entry.amount, 0);
   const totalSaved = ALREADY_SAVED_BASELINE + totalAdded;
   const pct = Math.min(100, (totalSaved / GOAL_TOTAL) * 100);
-
   document.getElementById('savedAmount').textContent = '$' + totalSaved.toLocaleString(undefined, {maximumFractionDigits: 0});
   document.getElementById('gaugeFill').style.width = pct + '%';
   document.getElementById('pctDone').textContent = Math.round(pct) + '%';
-
   const weeksLeft = updateCountdown();
   const remaining = Math.max(0, GOAL_TOTAL - totalSaved);
   const weeklyPace = remaining / weeksLeft;
   document.getElementById('weeklyPace').textContent = '$' + weeklyPace.toFixed(0) + '/wk';
-
   const listEl = document.getElementById('logList');
   listEl.innerHTML = '';
   if (log.length === 0) {
@@ -517,11 +606,9 @@ async function renderSavings() {
     });
   }
 }
-
-document.querySelectorAll('.task-check').forEach(box => {
+document.querySelectorAll('.task-check[data-task]').forEach(box => {
   box.addEventListener('click', () => toggleTask(box.getAttribute('data-task')));
 });
-
 document.getElementById('addBtn').addEventListener('click', async () => {
   const input = document.getElementById('addAmount');
   const val = parseFloat(input.value);
@@ -532,16 +619,15 @@ document.getElementById('addBtn').addEventListener('click', async () => {
   input.value = '';
   await renderSavings();
 });
-
 document.getElementById('addAmount').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
 });
-
 (async function init() {
   formatDateHeader();
   updateCountdown();
   await renderTasks();
   await renderStreak();
+  await renderWorkoutRoutine();
   await renderSavings();
 })();
 </script>
